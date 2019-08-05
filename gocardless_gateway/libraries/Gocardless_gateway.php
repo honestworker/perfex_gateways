@@ -7,6 +7,8 @@ class Gocardless_gateway extends App_gateway
     protected $sandbox_url = 'https://api-sandbox.gocardless.com/';
     protected $production_url = 'https://api.gocardless.com/';
 
+    protected $support_currency = ["AUD", "CAD", "DKK", "EUR", "GBP", "NZD", "SEK", "USD" ];
+
     public function __construct()
     {
         /**
@@ -53,29 +55,33 @@ class Gocardless_gateway extends App_gateway
     
     public function process_payment($data)
     {
-        if ($this->getSetting('test_mode_enabled')) {
-            $client = new \GoCardlessPro\Client(array(
-                'access_token' => $this->getSetting('api_top_secret_access_token'),
-                'environment'  => \GoCardlessPro\Environment::SANDBOX
-            ));
-        } else {
-            $client = new \GoCardlessPro\Client(array(
-                'access_token' => $this->getSetting('api_top_secret_access_token'),
-                'environment'  => \GoCardlessPro\Environment
-            ));
+        if (in_array($data['invoice']->currency_name, $this->support_currency)) {
+            if ($this->getSetting('test_mode_enabled')) {
+                $client = new \GoCardlessPro\Client(array(
+                    'access_token' => $this->getSetting('api_top_secret_access_token'),
+                    'environment'  => \GoCardlessPro\Environment::SANDBOX
+                ));
+            } else {
+                $client = new \GoCardlessPro\Client(array(
+                    'access_token' => $this->getSetting('api_top_secret_access_token'),
+                    'environment'  => \GoCardlessPro\Environment::LIVE
+                ));
+            }
+            
+            $client->payments()->create([
+              "params" => [
+                    "amount" => $data['invoice']->total * 100,
+                    "currency" => $data['invoice']->currency_name,
+                    "description" => $data['invoice']->clientnote,
+                    "metadata" => [
+                        "invoice_number" => 'Invoice-ID-' . date("YmdHis") . "-". $data['invoice']->id
+                    ],
+                    "links" => [
+                        "mandate" => "MD123"
+                    ],
+                ]
+            ]);
         }
-        
-        $client->payments()->create([
-          "params" => [
-                "amount" => 100,
-                "currency" => "GBP",
-                "metadata" => [
-                    "order_dispatch_date" => "2016-08-04"
-                ],
-                "links" => [
-                    "mandate" => "MD123"
-                ]]
-        ]);
     }
 
     public function get_action_url()
