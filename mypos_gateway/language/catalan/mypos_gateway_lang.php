@@ -1,4 +1,4 @@
 <?php
 
 #  Version 1.0.0
-$lang['mypos_gateway']                            = 'JS personalitzat';
+$lang['mypos_gateway']                            = 'Porta d’entrada Mypos';
