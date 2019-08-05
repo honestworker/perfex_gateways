@@ -109,7 +109,7 @@ class Mypos_gateway extends App_gateway
         $cnf->setPrivateKeyPath(dirname(__FILE__) . $this->private_key_url); 
         $cnf->setAPIPublicKeyPath(dirname(__FILE__) . $this->public_key_url); 
         $cnf->setKeyIndex(1);
-        $cnf->setSid($this->getSetting('api_store_id')); 
+        $cnf->setSid($this->getSetting('api_store_id'));
         $cnf->setVersion('1.3'); 
         $cnf->setWallet($this->getSetting('api_wallet_number'));
         
@@ -198,6 +198,7 @@ class Mypos_gateway extends App_gateway
         
         $cart = new \Mypos\IPC\Cart;
         foreach ($data['invoice']->items as $item) {
+            $rate = $item['rate'];
             if ((int)$item['qty'] . '' == $item['qty']) {
                 $cart->add($item['description'], (int)$item['qty'], number_format(str_replace(",", "", $item['rate']), 2, ".", ""));
             } else {
@@ -210,6 +211,15 @@ class Mypos_gateway extends App_gateway
                     $cart->add($item['description'], 1, number_format($rate, 2, ".", ""));
                 }
             }
+            
+            $tax_data = get_invoice_item_taxes($item['id']);
+            if (is_array($tax_data)) {
+                if (count($tax_data)) {
+                    foreach ($tax_data as $tax) {
+                        $cart->add($tax['taxname'], 1, number_format($rate * $tax['taxrate'] / 100, 2, ".", ""));
+                    }
+                }
+            }
         }
         if (isset($data['invoice']->payments)) {
             foreach ($data['invoice']->payments as $payment) {
@@ -217,21 +227,11 @@ class Mypos_gateway extends App_gateway
             }
         }
 
-        if ($data['invoice']->total_tax) {
-            $vat = 'VAT';
-            if (isset($data['invoice']->client->vat)) {
-                if ($data['invoice']->client->vat) {
-                    $vat = $data['invoice']->client->vat;
-                }
-            }
-            $cart->add($vat, 1, number_format(str_replace(",", "", $data['invoice']->total_tax), 2, ".", ""));
-        }
-
         $purchase = new \Mypos\IPC\Purchase($cnf);
         $purchase->setUrlCancel(site_url('mypos_gateway/process/complete_purchase/'));
         $purchase->setUrlOk(site_url('mypos_gateway/process/complete_purchase/'));
         $purchase->setUrlNotify(site_url('mypos_gateway/process/complete_purchase/'));
-        $purchase->setOrderID('Themesic-Order-' . date("YmdHis") . "-". $data['invoice']->id);
+        $purchase->setOrderID('Invoice-ID-' . date("YmdHis") . "-". $data['invoice']->id);
         $purchase->setCurrency($data['invoice']->currency_name); 
         $purchase->setNote($data['invoice']->clientnote);
         $purchase->setCustomer($customer); 
@@ -272,7 +272,7 @@ class Mypos_gateway extends App_gateway
         
         $data = $responce->getData(CASE_UPPER);
         
-        $invoiceid = substr(str_replace("Themesic-Order-", "", $data['ORDERID']), 15);
+        $invoiceid = substr(str_replace("Invoice-ID-", "", $data['ORDERID']), 15);
         $data['ORDERID'] = $invoiceid;
         
         return $data;
