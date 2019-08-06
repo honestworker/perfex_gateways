@@ -22,23 +22,57 @@ class Skrill_gateway extends App_gateway
          * REQUIRED
          * Gateway name
          */
-        $this->setName('Skril');
+        $this->setName('Skrill');
 
         /**
          * Add gateway settings
          */
         $this->setSettings([
+            [
+                'name'              => 'api_merchant_email',
+                'label'             => 'Merchant Email',
+                'type'              => 'input'
+            ],
+            [
+                'name'              => 'api_merchant_secret_word',
+                'label'             => 'Merchant Secret Word',
+                'type'              => 'input'
+            ],
+            [
+                'name'              => 'api_merchant_secret_salt',
+                'label'             => 'Merchant Secret Salt',
+                'type'              => 'input'
+            ],
+            [
+                'name'              => 'test_mode_enabled',
+                'type'              => 'yes_no',
+                'default_value'     => 0,
+                'label'             => 'settings_paymentmethod_testing_mode',
+            ],
         ]);
     }
         
     public function process_payment($data)
     {
+        $this->ci->session->set_userdata([
+            'total_authorize' => $data['amount'],
+        ]);
+
+        redirect(site_url('skrill_gateway/process/make_payment?invoiceid=' . $data['invoiceid'] . '&total=' . $data['amount'] . '&hash=' . $data['invoice']->hash));
+    }
+    
+    public function merchant_email() {
+        return $this->getSetting('api_merchant_email');
+    }
+    
+    public function merchant_secret_word() {
+        return $this->getSetting('api_merchant_secret_word');
     }
 
-    public function get_action_url()
-    {
+    public function merchant_secret_salt() {
+        return $this->getSetting('api_merchant_secret_salt');
     }
-
+    
     public function finish_payment($post_data)
     {
     }
