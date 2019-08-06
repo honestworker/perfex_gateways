@@ -1,0 +1,153 @@
+
+Array
+(
+    [invoice] =&gt; stdClass Object
+        (
+            [id] =&gt; 6
+            [sent] =&gt; 0
+            [datesend] =&gt; 
+            [clientid] =&gt; 1
+            [deleted_customer_name] =&gt; 
+            [number] =&gt; 6
+            [prefix] =&gt; INV-
+            [number_format] =&gt; 1
+            [datecreated] =&gt; 2019-08-06 10:18:28
+            [date] =&gt; 2019-08-06
+            [duedate] =&gt; 2019-09-05
+            [currency] =&gt; 1
+            [subtotal] =&gt; 118.00
+            [total_tax] =&gt; 11.80
+            [total] =&gt; 129.80
+            [adjustment] =&gt; 0.00
+            [addedfrom] =&gt; 1
+            [hash] =&gt; aa4afeba71fdb4698e7d32a3f48e3ad9
+            [status] =&gt; 3
+            [clientnote] =&gt; 
+            [adminnote] =&gt; 
+            [last_overdue_reminder] =&gt; 
+            [cancel_overdue_reminders] =&gt; 0
+            [allowed_payment_modes] =&gt; a:4:{i:0;s:1:"1";i:1;s:5:"mypos";i:2;s:10:"gocardless";i:3;s:6:"skrill";}
+            [token] =&gt; 
+            [discount_percent] =&gt; 0.00
+            [discount_total] =&gt; 0.00
+            [discount_type] =&gt; 
+            [recurring] =&gt; 0
+            [recurring_type] =&gt; 
+            [custom_recurring] =&gt; 0
+            [cycles] =&gt; 0
+            [total_cycles] =&gt; 0
+            [is_recurring_from] =&gt; 
+            [last_recurring_date] =&gt; 
+            [terms] =&gt; 
+            [sale_agent] =&gt; 0
+            [billing_street] =&gt; 123 Road Street
+            [billing_city] =&gt; London
+            [billing_state] =&gt; Greater London
+            [billing_zip] =&gt; WC1 ASW
+            [billing_country] =&gt; 235
+            [shipping_street] =&gt; 123 Road Street
+            [shipping_city] =&gt; London
+            [shipping_state] =&gt; Greater London
+            [shipping_zip] =&gt; WC1 ASW
+            [shipping_country] =&gt; 235
+            [include_shipping] =&gt; 1
+            [show_shipping_on_invoice] =&gt; 1
+            [show_quantity_as] =&gt; 1
+            [project_id] =&gt; 0
+            [subscription_id] =&gt; 0
+            [symbol] =&gt; $
+            [name] =&gt; USD
+            [decimal_separator] =&gt; .
+            [thousand_separator] =&gt; ,
+            [placement] =&gt; before
+            [isdefault] =&gt; 1
+            [currencyid] =&gt; 1
+            [currency_name] =&gt; USD
+            [total_left_to_pay] =&gt; 110.00
+            [items] =&gt; Array
+                (
+                    [0] =&gt; Array
+                        (
+                            [id] =&gt; 9
+                            [rel_id] =&gt; 6
+                            [rel_type] =&gt; invoice
+                            [description] =&gt; test
+                            [long_description] =&gt; test
+                            [qty] =&gt; 1.00
+                            [rate] =&gt; 118.00
+                            [unit] =&gt; 
+                            [item_order] =&gt; 1
+                        )
+
+                )
+
+            [attachments] =&gt; Array
+                (
+                )
+
+            [visible_attachments_to_customer_found] =&gt; 
+            [client] =&gt; stdClass Object
+                (
+                    [userid] =&gt; 1
+                    [company] =&gt; Sample Company LTD
+                    [vat] =&gt; 123456789
+                    [phonenumber] =&gt; +44 210 7298299
+                    [country] =&gt; 235
+                    [city] =&gt; London
+                    [zip] =&gt; WC1 ASW
+                    [state] =&gt; Greater London
+                    [address] =&gt; 123 Road Street
+                    [website] =&gt; https://www.test.com
+                    [datecreated] =&gt; 2019-04-02 13:38:28
+                    [active] =&gt; 1
+                    [leadid] =&gt; 
+                    [billing_street] =&gt; 123 Road Street
+                    [billing_city] =&gt; London
+                    [billing_state] =&gt; Greater London
+                    [billing_zip] =&gt; WC1 ASW
+                    [billing_country] =&gt; 235
+                    [shipping_street] =&gt; 123 Road Street
+                    [shipping_city] =&gt; London
+                    [shipping_state] =&gt; Greater London
+                    [shipping_zip] =&gt; WC1 ASW
+                    [shipping_country] =&gt; 235
+                    [longitude] =&gt; 
+                    [latitude] =&gt; 
+                    [default_language] =&gt; 
+                    [default_currency] =&gt; 0
+                    [show_primary_contact] =&gt; 0
+                    [stripe_id] =&gt; 
+                    [registration_confirmed] =&gt; 1
+                    [addedfrom] =&gt; 1
+                )
+
+            [payments] =&gt; Array
+                (
+                    [0] =&gt; Array
+                        (
+                            [id] =&gt; 1
+                            [invoiceid] =&gt; 6
+                            [amount] =&gt; 19.80
+                            [paymentmode] =&gt; 1
+                            [paymentmethod] =&gt; 
+                            [date] =&gt; 2019-08-06
+                            [daterecorded] =&gt; 2019-08-06 10:20:03
+                            [note] =&gt; 
+                            [transactionid] =&gt; 
+                            [name] =&gt; Bank
+                            [description] =&gt; 
+                            [show_on_pdf] =&gt; 0
+                            [invoices_only] =&gt; 0
+                            [expenses_only] =&gt; 0
+                            [selected_by_default] =&gt; 1
+                            [active] =&gt; 1
+                            [paymentid] =&gt; 11
+                        )
+
+                )
+
+        )
+
+    [total] =&gt; 110.00
+    [billing_name] =&gt; John Armstrong
+)

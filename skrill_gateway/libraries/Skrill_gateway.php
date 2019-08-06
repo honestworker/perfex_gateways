@@ -41,14 +41,9 @@ class Skrill_gateway extends App_gateway
             [
                 'name'              => 'api_merchant_secret_salt',
                 'label'             => 'Merchant Secret Salt',
-                'type'              => 'input'
-            ],
-            [
-                'name'              => 'test_mode_enabled',
-                'type'              => 'yes_no',
-                'default_value'     => 0,
-                'label'             => 'settings_paymentmethod_testing_mode',
-            ],
+                'type'              => 'input',
+                'default_value'     => 'skrill123',
+            ]
         ]);
     }
         

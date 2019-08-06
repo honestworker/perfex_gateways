@@ -9,43 +9,39 @@ use zvook\Skrill\Components\SkrillException;
 
 class Process extends App_Controller
 {
-    public function complete_purchase()
+    public function complete_purchase($amount = 0)
     {
         try {
             $response = new SkrillStatusResponse($_POST);
             
             if ($response->verifySignature($this->skrill_gateway->merchant_secret_word()) && $response->isProcessed()) {
                 $invoiceid = substr(str_replace("Invoice-ID-", "", $response->getTransactionId()), 15);
+                if ($response->getStatus() == 2) {
+                    $success = $this->skrill_gateway->addPayment(
+                        [
+                          'amount'        => $response->getAmount(),
+                          'invoiceid'     => $invoiceid,
+                          'transactionid' => $response->getTransactionId()
+                        ]
+                    );
+                    log_activity('Skrill Payment [InvoiceID: ' . $invoiceid . ' TransactionID: ' . $response->getTransactionId() . ' Amount: ' . $response->getAmount() . ' Status: PAID' . ']');
+                } else if ($response->getStatus() == -1) {
+                    log_activity('Skrill Payment [InvoiceID: ' . $invoiceid . ' TransactionID: ' . $response->getTransactionId() . ' Amount: ' . $response->getAmount() . ' Status: CANCELLED' . ']');
+                } else if ($response->getStatus() == -2) {
+                    log_activity('Skrill Payment [InvoiceID: ' . $invoiceid . ' TransactionID: ' . $response->getTransactionId() . ' Amount: ' . $response->getAmount() . ' Status: FAILED' . ']');
+                }
                 $this->load->model('invoices_model');
                 $invoice = $this->invoices_model->get($invoiceid);
-                if ($response->getStatus == 2) {
-                    log_activity('Skrill Payment [InvoiceID: ' . $response->getTransactionId . ' TransactionID: ' . $response->getTransactionId() . ' Amount: ' . $response->getAmount() . ' Status: UNPAID' . ']');
-                } else if ($response->getStatus == -1) {
-                    log_activity('Skrill Payment [InvoiceID: ' . $response->getTransactionId . ' TransactionID: ' . $response->getTransactionId() . ' Amount: ' . $response->getAmount() . ' Status: CANCELLED' . ']');
-                } else if ($response->getStatus == -2) {
-                    log_activity('Skrill Payment [InvoiceID: ' . $response->getTransactionId . ' TransactionID: ' . $response->getTransactionId() . ' Amount: ' . $response->getAmount() . ' Status: FAILED' . ']');
-                }
-                if ($invoice) {
-                    redirect(site_url('invoice/' . $invoiceid . '/' . $invoice->hash));
-                } else {
-                    redirect(site_url('/'));
-                }
+                echo "Ok";
             }
         } catch (SkrillException $e) {
-            if (isset($_GET['salt']) && isset($_GET['transaction_id'])) {
+            if (isset($_GET['salt']) && isset($_GET['transaction_id']) && $amount) {
                 $invoiceid = substr(str_replace("Invoice-ID-", "", $_GET['transaction_id']), 15);
                 $this->load->model('invoices_model');
                 $invoice = $this->invoices_model->get($invoiceid);
                 if ($_GET['salt'] == md5($this->skrill_gateway->merchant_secret_salt() . $invoiceid)) {
                     if ($invoice) {
-                        log_activity('Skrill Payment [InvoiceID: ' . $invoiceid . ' TransactionID: ' .  $_GET['transaction_id'] . ' Amount: ' . $invoice->total . ' Status: PAID' . ']');
-                        $success = $this->skrill_gateway->addPayment(
-                            [
-                              'amount'        => $invoice->total,
-                              'invoiceid'     => $invoiceid,
-                              'transactionid' => $_GET['transaction_id']
-                            ]
-                        );
+                        log_activity('Skrill Payment [InvoiceID: ' . $invoiceid . ' TransactionID: ' .  $_GET['transaction_id'] . ' Amount: ' . $amount . ' Status: PROCESSED' . ']');
                         redirect(site_url('invoice/' . $invoiceid . '/' . $invoice->hash));
                     } else {
                         redirect(site_url('/'));
@@ -89,7 +85,7 @@ class Process extends App_Controller
     {
         $quickCheckout = new QuickCheckOut([
             'pay_to_email' => $this->skrill_gateway->merchant_email(),
-            'amount' => $data['invoice']->total,
+            'amount' => $data['total'],
             'currency' => $data['invoice']->currency_name,
         ]);
         
@@ -114,11 +110,12 @@ class Process extends App_Controller
                 }
             }
         }
+        
         $quickCheckout->setAmount2($amount2);
         $quickCheckout->setAmount2Description($description2);
         if ($amount3) {
-            $quickCheckout->setAmount2($amount3);
-            $quickCheckout->setAmount2Description($description3);
+            $quickCheckout->setAmount3($amount3);
+            $quickCheckout->setAmount3Description($description3);
         }
         
         $amount4 = 0;
@@ -224,8 +221,7 @@ class Process extends App_Controller
         $quickCheckout->setRecipientDescription($data['invoice']->clientnote);
         $quickCheckout->setTransactionId('Invoice-ID-' . date("YmdHis") . "-". $data['invoice']->id);
         $quickCheckout->setStatusUrl(site_url('skrill_gateway/process/complete_purchase/'));
-        $quickCheckout->setReturnUrl(site_url('skrill_gateway/process/complete_purchase/?salt=' . md5($this->skrill_gateway->merchant_secret_salt() . $data['invoice']->id)));
-        //$quickCheckout->setReturnUrl(site_url('invoice/' . $data['invoice']->id . '/' . $data['invoice']->hash));
+        $quickCheckout->setReturnUrl(site_url('skrill_gateway/process/complete_purchase/' . $data['total'] . '?salt=' . md5($this->skrill_gateway->merchant_secret_salt() . $data['invoice']->id)));
         $quickCheckout->setReturnUrlTarget(QuickCheckout::URL_TARGET_SELF);
         
         $form = new QuickCheckoutForm($quickCheckout);
