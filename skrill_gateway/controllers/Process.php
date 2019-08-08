@@ -16,22 +16,40 @@ class Process extends App_Controller
             
             if ($response->verifySignature($this->skrill_gateway->merchant_secret_word()) && $response->isProcessed()) {
                 $invoiceid = substr(str_replace("Invoice-ID-", "", $response->getTransactionId()), 15);
+                
                 if ($response->getStatus() == 2) {
-                    $success = $this->skrill_gateway->addPayment(
-                        [
-                          'amount'        => $response->getAmount(),
-                          'invoiceid'     => $invoiceid,
-                          'transactionid' => $response->getTransactionId()
-                        ]
-                    );
-                    log_activity('Skrill Payment [InvoiceID: ' . $invoiceid . ' TransactionID: ' . $response->getTransactionId() . ' Amount: ' . $response->getAmount() . ' Status: PAID' . ']');
-                } else if ($response->getStatus() == -1) {
-                    log_activity('Skrill Payment [InvoiceID: ' . $invoiceid . ' TransactionID: ' . $response->getTransactionId() . ' Amount: ' . $response->getAmount() . ' Status: CANCELLED' . ']');
-                } else if ($response->getStatus() == -2) {
-                    log_activity('Skrill Payment [InvoiceID: ' . $invoiceid . ' TransactionID: ' . $response->getTransactionId() . ' Amount: ' . $response->getAmount() . ' Status: FAILED' . ']');
+                    $this->db->where('invoiceid', $invoiceid);
+                    $this->db->where('transactionid', $response->getTransactionId());
+                    $payment = $this->db->get(db_prefix().'invoicepaymentrecords')->row();
+                    
+                    if ($payment) {
+                        $this->db->where('id', $payment->id);
+                        $this->db->update(db_prefix().'invoicepaymentrecords', ['transactionid' => $response->getMbTransactionId()]);
+                    } else {
+                        $success = $this->skrill_gateway->addPayment(
+                            [
+                                'amount'        => $response->getAmount(),
+                                'invoiceid'     => $invoiceid,
+                                'transactionid' => $response->getMbTransactionId(),
+                                'note'          => $response->getTransactionId()
+                            ]
+                        );
+                    }
+                    log_activity('Skrill Payment [InvoiceID: ' . $invoiceid . ' TransactionID: ' . $response->getMbTransactionId() . ' Amount: ' . $response->getAmount() . ' Status: PAID' . ']');
+                } else {
+                    $this->db->where('invoiceid', $invoiceid);
+                    $this->db->where('transactionid', $response->getTransactionId());
+                    $this->db->delete(db_prefix().'invoicepaymentrecords');
+                    
+                    if ($response->getStatus() == -1) {
+                        log_activity('Skrill Payment [InvoiceID: ' . $invoiceid . ' TransactionID: ' . $response->getMbTransactionId() . ' Amount: ' . $response->getAmount() . ' Status: CANCELLED' . ']');
+                    } else if ($response->getStatus() == -2) {
+                        log_activity('Skrill Payment [InvoiceID: ' . $invoiceid . ' TransactionID: ' . $response->getMbTransactionId() . ' Amount: ' . $response->getAmount() . ' Status: FAILED' . ']');
+                    }
+                        
+                    update_invoice_status($invoiceid);
                 }
-                $this->load->model('invoices_model');
-                $invoice = $this->invoices_model->get($invoiceid);
+                
                 echo "Ok";
             }
         } catch (SkrillException $e) {
@@ -41,7 +59,20 @@ class Process extends App_Controller
                 $invoice = $this->invoices_model->get($invoiceid);
                 if ($_GET['salt'] == md5($this->skrill_gateway->merchant_secret_salt() . $invoiceid)) {
                     if ($invoice) {
-                        log_activity('Skrill Payment [InvoiceID: ' . $invoiceid . ' TransactionID: ' .  $_GET['transaction_id'] . ' Amount: ' . $amount . ' Status: PROCESSED' . ']');
+                        $this->db->where('invoiceid', $invoiceid);
+                        $this->db->where('note', $_GET['transaction_id']);
+                        $payment = $this->db->get(db_prefix().'invoicepaymentrecords')->row();
+                        
+                        if (!$payment) {
+                            $success = $this->skrill_gateway->addPayment(
+                                [
+                                    'amount'        => $amount,
+                                    'invoiceid'     => $invoiceid,
+                                    'transactionid' => $_GET['transaction_id']
+                                ]
+                            );
+                        }
+                        log_activity('Skrill Payment [InvoiceID: ' . $invoiceid . ' Amount: ' . $amount . ' Status: PROCESSED' . ']');
                         redirect(site_url('invoice/' . $invoiceid . '/' . $invoice->hash));
                     } else {
                         redirect(site_url('/'));
