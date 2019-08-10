@@ -43,7 +43,12 @@ class Skrill_gateway extends App_gateway
                 'label'             => 'Merchant Secret Salt',
                 'type'              => 'input',
                 'default_value'     => 'skrill123',
-            ]
+            ],
+            [
+                'name'              => 'currencies',
+                'label'             => 'settings_paymentmethod_currencies',
+                'default_value'     => 'USD,CAD'
+            ],
         ]);
     }
         
